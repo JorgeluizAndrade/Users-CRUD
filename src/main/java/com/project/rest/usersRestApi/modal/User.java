@@ -1,15 +1,18 @@
 package com.project.rest.usersRestApi.modal;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Entity
 @Table(name = "tab_users")
-public class User {
+public class User implements UserDetails {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column
@@ -18,12 +21,14 @@ public class User {
 	@Column(length = 35, nullable = false)
 	private String name;
 
-    
 	@Column(length = 35, nullable = false)
-	private String userName;
+	private String username;
 
 	@Column(length = 100, nullable = false)
 	private String password;
+
+	@CollectionTable(name = "tab_user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    private UserRole roles;
 
 	public Integer getId() {
 		return id;
@@ -41,12 +46,12 @@ public class User {
 		this.name = name;
 	}
 
-	public String getUserName() {
-		return userName;
+	public String getUsername() {
+		return username;
 	}
 
-	public void setUserName(String userName) {
-		this.userName = userName;
+	public void setUsername(String userName) {
+		this.username = userName;
 	}
 
 	public String getPassword() {
@@ -57,9 +62,45 @@ public class User {
 		this.password = password;
 	}
 
+	
+
 	@Override
 	public String toString() {
-		return "User [id=" + id + ", name=" + name + ", userName=" + userName + ", password=" + password + "]";
+		return "User [id=" + id + ", name=" + name + ", userName=" + username + ", password=" + password + "]";
+	}
+
+	@Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        if(this.roles == UserRole.ADMIN) return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_USER"));
+        else return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+    }
+
+	public UserRole getRoles() {
+		return roles;
+	}
+
+	public void setRoles(UserRole roles) {
+		this.roles = roles;
+	}
+
+	@Override
+	public boolean isAccountNonExpired() {
+		return true;
+	}
+
+	@Override
+	public boolean isAccountNonLocked() {
+		return true;
+	}
+
+	@Override
+	public boolean isCredentialsNonExpired() {
+		return true;
+	}
+
+	@Override
+	public boolean isEnabled() {
+		return true;
 	}
 
 }
